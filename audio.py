@@ -2,13 +2,11 @@ import librosa
 import numpy as np
 
 
-def get_spectrum(audio_file, sr=None, n_fft=2048, hop_length=None):
+def get_spectrum(audio_data, sr, n_fft=2048, hop_length=None):
     if hop_length is None:
         hop_length = n_fft // 4
 
-    y, sr = librosa.load(audio_file, sr=sr)
-
-    D = librosa.stft(y, n_fft=n_fft, hop_length=hop_length)
+    D = librosa.stft(audio_data, n_fft=n_fft, hop_length=hop_length)
 
     S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max(np.abs(D)))
 
