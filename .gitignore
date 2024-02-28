@@ -2,3 +2,5 @@
 *.wav
 __pycache__
 *.aup3
+*.png
+*.pdf
