@@ -4,7 +4,7 @@ import soundfile as sf
 import matplotlib.pyplot as plt
 import librosa
 from scipy.interpolate import interp1d
-from scipy.integrate import quad
+from scipy.integrate import quad, simpson
 
 # AUDIO_FOLDER = "./audio"
 
@@ -31,8 +31,9 @@ def compute_max_spectrum(audio_file, sr=None):
 
     # Find maximum spectrum (maximum amplitude across time)
     max_spectrum = np.max(S_db, axis=1)
+    frequencies = librosa.core.fft_frequencies(sr=sr)
 
-    return max_spectrum, sr
+    return max_spectrum, sr, frequencies
 
 
 # Function to interpolate the maximum spectrum
@@ -68,11 +69,14 @@ def plot_interpolated_spectrum(max_spectrum_interp, freqs_interp):
 
 audio_file1 = "audio/reference-01.wav"
 audio_file2 = "audio/reference-02.wav"
-max_spectrum1, sr = compute_max_spectrum(audio_file1)
-max_spectrum2, sr = compute_max_spectrum(audio_file2)
+max_spectrum1, sr, freqs1 = compute_max_spectrum(audio_file1)
+max_spectrum2, sr, freqs2 = compute_max_spectrum(audio_file2)
 msi1, freq1, func1 = interpolate_spectrum(max_spectrum1, sr)
 msi2, freq2, func2 = interpolate_spectrum(max_spectrum2, sr)
 plot_interpolated_spectrum(msi1, freq1)
 plot_interpolated_spectrum(msi2, freq2)
 
-print(quad(lambda x: np.abs(func1(x) - func2(x)), 100, 16000))
+# print(func1(1000))
+
+print(quad(lambda x: np.abs(func1(x) - func2(x)) / np.log10(x), 100, 16000))
+print(simpson(np.abs(max_spectrum1[1:] - max_spectrum2[1:]), x=np.log10(freqs1[1:])))
