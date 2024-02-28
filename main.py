@@ -15,7 +15,6 @@ def exponential(x, a, b, c):
 
 for dir_name in os.listdir(AUDIO_FOLDER):
     references = []
-    points_norm1 = []
     points_norminf = []
 
     dir_path = os.path.join(AUDIO_FOLDER, dir_name)
@@ -36,30 +35,18 @@ for dir_name in os.listdir(AUDIO_FOLDER):
 
         frequencies, spectrum = audio.get_spectrum(y, sr)
 
-        distances_norm1 = np.array(
-            [
-                integrate.simpson(
-                    np.abs(spectrum[1:] - ref[1][1:]), x=np.log10(frequencies[1:])
-                )
-                for ref in references
-            ]
-        )
-        distance_norm1 = np.mean(distances_norm1)
-        points_norm1.append(distance_norm1)
-
         distances_norminf = np.array(
             [np.max(np.abs(spectrum - ref[1])) for ref in references]
         )
         distance_norminf = np.mean(distances_norminf)
         points_norminf.append(distance_norminf)
 
-    x_values = np.linspace(0, len(points_norm1) - 1, len(points_norm1))
+    x_values = np.linspace(0, len(points_norminf) - 1, len(points_norminf))
 
     popt = optimize.curve_fit(exponential, x_values, points_norminf, p0=[15, 1, 30])
 
     plt.figure(figsize=(12, 10))
-    plt.scatter(x_values, points_norm1, label="Norm 1")
-    plt.scatter(x_values, points_norminf, label="Norm inf")
+    plt.scatter(x_values, points_norminf, label="Norm to infinity")
     plt.plot(x_values, exponential(x_values, *popt[0]), "r", label="Fit")
     plt.xlabel("Index")
     plt.ylabel("Distances")
