@@ -3,9 +3,14 @@ import audio
 import os
 import numpy as np
 import scipy.integrate as integrate
+import scipy.optimize as optimize
 import librosa
 
 AUDIO_FOLDER = input("Enter the path of the audio folder: ")
+
+
+def exponential(x, a, b, c):
+    return a * np.exp(-b * x) + c
 
 
 for dir_name in os.listdir(AUDIO_FOLDER):
@@ -50,9 +55,12 @@ for dir_name in os.listdir(AUDIO_FOLDER):
 
     x_values = np.linspace(0, len(points_norm1) - 1, len(points_norm1))
 
+    popt = optimize.curve_fit(exponential, x_values, points_norminf, p0=[15, 1, 30])
+
     plt.figure(figsize=(12, 10))
     plt.scatter(x_values, points_norm1, label="Norm 1")
     plt.scatter(x_values, points_norminf, label="Norm inf")
+    plt.plot(x_values, exponential(x_values, *popt[0]), "r", label="Fit")
     plt.xlabel("Index")
     plt.ylabel("Distances")
     plt.title("Distances Plot")
