@@ -28,7 +28,7 @@ for dir_name in os.listdir(AUDIO_FOLDER):
         references.append((frequencies, spectrum))
 
     t_values = []
-    points_norminf = []
+    data_points = []
     effect_folder = os.path.join(dir_path, "effect")
 
     for file_name in os.listdir(effect_folder):
@@ -39,19 +39,22 @@ for dir_name in os.listdir(AUDIO_FOLDER):
 
         frequencies, spectrum = audio.get_spectrum(y, sr)
 
-        distances_norminf = np.array(
-            [analyse.get_distance(spectrum, ref[1]) for ref in references]
+        distances = np.array(
+            [
+                analyse.get_distance(spectrum[1:], ref[1][1:], frequencies[1:])
+                for ref in references
+            ]
         )
-        mean_distance = np.mean(distances_norminf)
-        points_norminf.append(mean_distance)
+        mean_distance = np.mean(distances)
+        data_points.append(mean_distance)
 
     popt, _ = optimize.curve_fit(
-        analyse.exponential, t_values, points_norminf, p0=[45, -1 / 10, 30]
+        analyse.exponential, t_values, data_points, p0=[10, -1 / 10, 5]
     )
     height = popt[2]
 
     plt.figure(figsize=(12, 10))
-    plt.scatter(t_values, points_norminf - height, label="Norm to infinity")
+    plt.scatter(t_values, data_points - height, label="Norm: 1 with log scale")
 
     t_values = np.sort(t_values)
     plt.plot(
@@ -73,3 +76,4 @@ for dir_name in os.listdir(AUDIO_FOLDER):
 
     fig_path = os.path.join(dir_path, f"{dir_name}.pdf")
     plt.savefig(fig_path)
+    print(f"Done {plot_title}")

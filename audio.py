@@ -14,16 +14,3 @@ def get_spectrum(audio_data, sr, n_fft=2048, hop_length=None):
     max_spectrum = np.max(S_db, axis=1)
 
     return frequencies, max_spectrum
-
-
-# This is not needed
-def normalise(y, peak_db):
-    y_db = librosa.power_to_db(y)
-
-    current_peak_db = np.max(y_db)
-
-    scaling_factor = 10 ** ((peak_db - current_peak_db) / 10)
-
-    y_scaled = y * scaling_factor
-
-    return y_scaled
