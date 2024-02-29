@@ -16,8 +16,10 @@ class LabelTimer:
         self.start_time = start["begin"]
 
     def __call__(self, file_name):
-        assert file_name.endswith(".wav")
-        label = file_name.removesuffix(".wav")
+        assert file_name.endswith(".wav") or file_name.endswith(".mp3")
+
+        # Remove last 4 characters
+        label = file_name[:-4]
 
         label_data = self.labels[label]
 

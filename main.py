@@ -47,33 +47,45 @@ for dir_name in os.listdir(AUDIO_FOLDER):
         distance = analyse.get_distance(norms.l1_log, spectrum, references, frequencies)
         data_points.append(distance)
 
-    popt, _ = optimize.curve_fit(
-        analyse.exponential, t_values, data_points, p0=[10, -1 / 10, 5]
-    )
-    results.addline(
-        {
-            "id": dir_name,
-            "norm_id": "l1_log",
-            "exponent": popt[1],
-            "intensity": analyse.exponential(0, *popt),
-        }
-    )
+    plot_title = analyse.format_plot_title(dir_name)
+    popt = None
+
+    try:
+        popt, _ = optimize.curve_fit(
+            analyse.exponential, t_values, data_points, p0=[20, -1 / 10, 5]
+        )
+
+        results.addline(
+            {
+                "id": dir_name,
+                "norm_id": "l1_log",
+                "exponent": popt[1],
+                "intensity": analyse.exponential(0, *popt),
+            }
+        )
+
+        data_points = data_points - popt[2]
+    except:
+        print(f"Fit failed: {plot_title}")
 
     plt.figure(figsize=(12, 10))
-    plt.scatter(t_values, data_points - popt[2], label="Norm: L1 with log x axis")
+    plt.scatter(t_values, data_points, label="Norm: L1 with log x axis")
 
-    t_values = np.sort(t_values)
-    plt.plot(
-        t_values,
-        [analyse.exponential(t, *popt) - popt[2] for t in t_values],
-        "r",
-        label="Fit",
-    )
+    if popt is not None:
+        t0 = 0
+        tf = np.max(t_values)
+        t_values = np.linspace(t0, tf, 10000)
+
+        plt.plot(
+            t_values,
+            [analyse.exponential(t, *popt) - popt[2] for t in t_values],
+            "r",
+            label="Fit",
+        )
     plt.legend()
 
     plt.xlabel("Time (s)")
     plt.ylabel("Distance")
-    plot_title = analyse.format_plot_title(dir_name)
     plt.title(plot_title)
 
     plt.grid(True)
@@ -82,6 +94,8 @@ for dir_name in os.listdir(AUDIO_FOLDER):
 
     fig_path = os.path.join(dir_path, f"{dir_name}.pdf")
     plt.savefig(fig_path)
+    plt.close()
+
     print(f"Done {plot_title}")
 
 results.write()
