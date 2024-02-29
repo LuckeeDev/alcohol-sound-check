@@ -7,9 +7,13 @@ import numpy as np
 import scipy.optimize as optimize
 import librosa
 from label_timer import LabelTimer
+from results_writer import ResultsWriter
 
 AUDIO_FOLDER = input("Enter the path of the audio folder: ")
+RESULTS_FILE = input("Enter the path of the results file: ")
 LABELS_FILE_NAME = "labels.txt"
+
+results = ResultsWriter(RESULTS_FILE)
 
 
 for dir_name in os.listdir(AUDIO_FOLDER):
@@ -46,15 +50,22 @@ for dir_name in os.listdir(AUDIO_FOLDER):
     popt, _ = optimize.curve_fit(
         analyse.exponential, t_values, data_points, p0=[10, -1 / 10, 5]
     )
-    height = popt[2]
+    results.addline(
+        {
+            "id": dir_name,
+            "norm_id": "l1_log",
+            "exponent": popt[1],
+            "intensity": analyse.exponential(0, *popt),
+        }
+    )
 
     plt.figure(figsize=(12, 10))
-    plt.scatter(t_values, data_points - height, label="Norm: L1 with log x axis")
+    plt.scatter(t_values, data_points - popt[2], label="Norm: L1 with log x axis")
 
     t_values = np.sort(t_values)
     plt.plot(
         t_values,
-        [analyse.exponential(t, *popt) - height for t in t_values],
+        [analyse.exponential(t, *popt) - popt[2] for t in t_values],
         "r",
         label="Fit",
     )
@@ -72,3 +83,6 @@ for dir_name in os.listdir(AUDIO_FOLDER):
     fig_path = os.path.join(dir_path, f"{dir_name}.pdf")
     plt.savefig(fig_path)
     print(f"Done {plot_title}")
+
+results.write()
+print("Done writing results")

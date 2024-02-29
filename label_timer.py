@@ -2,10 +2,9 @@ import csv
 
 
 class LabelTimer:
-    labels = {}
-    start_time = 0.0
-
     def __init__(self, path):
+        self.labels = {}
+
         with open(path, newline="") as file:
             reader = csv.reader(file, delimiter="\t")
 
