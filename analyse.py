@@ -1,10 +1,16 @@
 import numpy as np
 import string
-import scipy.integrate as integrate
 
 
-def get_distance(spectrum_1, spectrum_2, frequencies):
-    return integrate.simpson(np.abs(spectrum_1 - spectrum_2), x=np.log(frequencies))
+def get_distance(norm, spectrum, references, frequencies=None):
+    if frequencies is None:
+        distances = np.array([norm(spectrum, ref[1]) for ref in references])
+        return np.mean(distances)
+    else:
+        distances = np.array(
+            [norm(spectrum, ref[1], frequencies) for ref in references]
+        )
+        return np.mean(distances)
 
 
 def exponential(x, a, b, c):

@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import audio
 import analyse
+import norms
 import os
 import numpy as np
 import scipy.optimize as optimize
@@ -39,14 +40,8 @@ for dir_name in os.listdir(AUDIO_FOLDER):
 
         frequencies, spectrum = audio.get_spectrum(y, sr)
 
-        distances = np.array(
-            [
-                analyse.get_distance(spectrum[1:], ref[1][1:], frequencies[1:])
-                for ref in references
-            ]
-        )
-        mean_distance = np.mean(distances)
-        data_points.append(mean_distance)
+        distance = analyse.get_distance(norms.l1_log, spectrum, references, frequencies)
+        data_points.append(distance)
 
     popt, _ = optimize.curve_fit(
         analyse.exponential, t_values, data_points, p0=[10, -1 / 10, 5]
@@ -54,7 +49,7 @@ for dir_name in os.listdir(AUDIO_FOLDER):
     height = popt[2]
 
     plt.figure(figsize=(12, 10))
-    plt.scatter(t_values, data_points - height, label="Norm: 1 with log scale")
+    plt.scatter(t_values, data_points - height, label="Norm: L1 with log x axis")
 
     t_values = np.sort(t_values)
     plt.plot(

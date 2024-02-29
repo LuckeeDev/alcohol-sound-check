@@ -13,4 +13,5 @@ def get_spectrum(audio_data, sr, n_fft=2048, hop_length=None):
     frequencies = librosa.core.fft_frequencies(sr=sr)
     max_spectrum = np.max(S_db, axis=1)
 
-    return frequencies, max_spectrum
+    # Remove frequency 0 from the list
+    return frequencies[1:], max_spectrum[1:]
