@@ -1,10 +1,12 @@
 import numpy as np
+import string
 
 
 def get_distance(spectrum_1, spectrum_2):
     return np.max(np.abs(spectrum_1 - spectrum_2))
 
 
+# This is not needed
 def get_normalisation_distance(references):
     normalisation_distances = []
 
@@ -19,3 +21,13 @@ def get_normalisation_distance(references):
         normalisation_distances.append(mean_distance)
 
     return np.mean(normalisation_distances)
+
+
+def exponential(x, a, b, c):
+    return a * np.exp(b * x) + c
+
+
+def format_plot_title(label: str):
+    words = label.split("_")
+    title = " ".join(words)
+    return string.capwords(title)

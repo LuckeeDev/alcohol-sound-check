@@ -16,6 +16,7 @@ def get_spectrum(audio_data, sr, n_fft=2048, hop_length=None):
     return frequencies, max_spectrum
 
 
+# This is not needed
 def normalise(y, peak_db):
     y_db = librosa.power_to_db(y)
 
