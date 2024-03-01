@@ -12,13 +12,13 @@ class ResultsWriter:
     def write(self):
         with open(self.file_path, "w", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow(["id", "norm_id", "exponent", "intensity"])
+            writer.writerow(["id", "norm_id", "duration", "intensity"])
             for data_dict in self.data:
                 writer.writerow(
                     [
                         data_dict["id"],
                         data_dict["norm_id"],
-                        data_dict["exponent"],
+                        data_dict["duration"],
                         data_dict["intensity"],
                     ]
                 )

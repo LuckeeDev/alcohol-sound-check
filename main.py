@@ -10,10 +10,14 @@ from label_timer import LabelTimer
 from results_writer import ResultsWriter
 
 AUDIO_FOLDER = input("Enter the path of the audio folder: ")
-RESULTS_FILE = input("Enter the path of the results file: ")
+OUTPUT_FOLDER = input("Enter the path of the output folder: ")
+
+if not os.path.exists(OUTPUT_FOLDER):
+    os.makedirs(OUTPUT_FOLDER)
+
 LABELS_FILE_NAME = "labels.txt"
 
-results = ResultsWriter(RESULTS_FILE)
+results = ResultsWriter(os.path.join(OUTPUT_FOLDER, "results.csv"))
 
 
 for dir_name in os.listdir(AUDIO_FOLDER):
@@ -27,7 +31,7 @@ for dir_name in os.listdir(AUDIO_FOLDER):
 
     for file_name in os.listdir(reference_folder_path):
         file_path = os.path.join(reference_folder_path, file_name)
-        y, sr = librosa.load(file_path)
+        y, sr = librosa.load(file_path, sr=None)
 
         frequencies, spectrum = audio.get_spectrum(y, sr)
         references.append((frequencies, spectrum))
@@ -40,7 +44,7 @@ for dir_name in os.listdir(AUDIO_FOLDER):
         t_values.append(timer(file_name))
 
         file_path = os.path.join(effect_folder, file_name)
-        y, sr = librosa.load(file_path)
+        y, sr = librosa.load(file_path, sr=None)
 
         frequencies, spectrum = audio.get_spectrum(y, sr)
 
@@ -59,7 +63,7 @@ for dir_name in os.listdir(AUDIO_FOLDER):
             {
                 "id": dir_name,
                 "norm_id": "l1_log",
-                "exponent": popt[1],
+                "duration": -1 / popt[1],
                 "intensity": analyse.exponential(0, *popt),
             }
         )
@@ -92,7 +96,7 @@ for dir_name in os.listdir(AUDIO_FOLDER):
     plt.margins(x=0)
     plt.xlim(left=0)
 
-    fig_path = os.path.join(dir_path, f"{dir_name}.pdf")
+    fig_path = os.path.join(OUTPUT_FOLDER, f"{dir_name}.pdf")
     plt.savefig(fig_path)
     plt.close()
 

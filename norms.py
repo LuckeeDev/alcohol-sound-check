@@ -3,7 +3,12 @@ import numpy as np
 
 
 def l1_log(spectrum_1, spectrum_2, frequencies):
-    return integrate.simpson(np.abs(spectrum_1 - spectrum_2), x=np.log(frequencies))
+    mask = [20 <= f <= 18000 for f in frequencies]
+
+    return integrate.simpson(
+        np.abs(spectrum_1[mask] - spectrum_2[mask]),
+        x=np.log(frequencies[mask]),
+    )
 
 
 def chebyshev(spectrum_1, spectrum_2):
