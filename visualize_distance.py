@@ -2,7 +2,6 @@ import librosa
 import modules.audio as audio
 import matplotlib.pyplot as plt
 import numpy as np
-from modules.constants import INTEGRATION_END
 
 EFFECT_PATH = input("Enter the path of the effect audio file: ")
 REFERENCE_PATH = input("Enter the path of the reference audio file: ")
@@ -24,7 +23,7 @@ plt.ylabel("Amplitude (dB)")
 plt.title("Spectral distance")
 
 plt.margins(x=0)
-plt.xlim(left=np.min(reference_frequencies), right=INTEGRATION_END)
+plt.xlim(left=np.min(reference_frequencies), right=18000)
 
 plt.plot(effect_frequencies, effect_spectrum, label="Effect")
 plt.plot(reference_frequencies, reference_spectrum, label="Reference")

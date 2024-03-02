@@ -8,8 +8,6 @@ from modules import audio, analyse, norms, utils
 from modules.csv_writer import CSVWriter
 from modules.label_timer import LabelTimer
 
-from modules.constants import LABELS_FILE_NAME
-
 print(
     "Make sure that the output folder is not a subdirectory of the audio folder. At most, they can be the same folder."
 )
@@ -23,6 +21,8 @@ results_csv = CSVWriter(
     results_path,
     ["id", "norm_id", "duration", "delta_duration", "intensity", "delta_intensity"],
 )
+
+LABELS_FILE_NAME = "labels.txt"
 
 for dir_name in os.listdir(AUDIO_FOLDER):
     dir_path = os.path.join(AUDIO_FOLDER, dir_name)
