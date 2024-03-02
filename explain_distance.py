@@ -1,7 +1,6 @@
 import librosa
 import audio
 import matplotlib.pyplot as plt
-import os
 
 EFFECT_PATH = input("Enter the path of the effect audio file: ")
 REFERENCE_PATH = input("Enter the path of the reference audio file: ")
