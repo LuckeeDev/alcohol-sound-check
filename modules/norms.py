@@ -1,9 +1,10 @@
 import scipy.integrate as integrate
 import numpy as np
+from constants import INTEGRATION_END, INTEGRATION_BEGIN
 
 
 def l1_log(spectrum_1, spectrum_2, frequencies):
-    mask = [20 <= f <= 18000 for f in frequencies]
+    mask = [INTEGRATION_BEGIN <= f <= INTEGRATION_END for f in frequencies]
 
     return integrate.simpson(
         np.abs(spectrum_1[mask] - spectrum_2[mask]),

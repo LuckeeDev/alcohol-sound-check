@@ -1,22 +1,22 @@
 import matplotlib.pyplot as plt
-import audio
-import analyse
-import norms
 import os
-import utils
 import numpy as np
 import scipy.optimize as optimize
 import librosa
-from label_timer import LabelTimer
-from csv_writer import CSVWriter
 
-print("Make sure that the output folder is not inside of the audio folder.")
+from modules import audio, analyse, norms, utils
+from modules.csv_writer import CSVWriter
+from modules.label_timer import LabelTimer
+
+from modules.constants import LABELS_FILE_NAME
+
+print(
+    "Make sure that the output folder is not a subdirectory of the audio folder. At most, they can be the same folder."
+)
 AUDIO_FOLDER = input("Enter the path of the audio folder: ")
 OUTPUT_FOLDER = input("Enter the path of the output folder: ")
 
 utils.ensure_dir(OUTPUT_FOLDER)
-
-LABELS_FILE_NAME = "labels.txt"
 
 results_path = os.path.join(OUTPUT_FOLDER, "results.csv")
 results_csv = CSVWriter(
