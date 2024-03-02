@@ -3,22 +3,26 @@ import audio
 import analyse
 import norms
 import os
+import utils
 import numpy as np
 import scipy.optimize as optimize
 import librosa
 from label_timer import LabelTimer
-from results_writer import ResultsWriter
+from csv_writer import CSVWriter
 
+print("Make sure that the output folder is not inside of the audio folder.")
 AUDIO_FOLDER = input("Enter the path of the audio folder: ")
 OUTPUT_FOLDER = input("Enter the path of the output folder: ")
 
-if not os.path.exists(OUTPUT_FOLDER):
-    os.makedirs(OUTPUT_FOLDER)
+utils.ensure_dir(OUTPUT_FOLDER)
 
 LABELS_FILE_NAME = "labels.txt"
 
-results = ResultsWriter(os.path.join(OUTPUT_FOLDER, "results.csv"))
-
+results_path = os.path.join(OUTPUT_FOLDER, "results.csv")
+results_csv = CSVWriter(
+    results_path,
+    ["id", "norm_id", "duration", "delta_duration", "intensity", "delta_intensity"],
+)
 
 for dir_name in os.listdir(AUDIO_FOLDER):
     dir_path = os.path.join(AUDIO_FOLDER, dir_name)
@@ -52,55 +56,89 @@ for dir_name in os.listdir(AUDIO_FOLDER):
         data_points.append(distance)
 
     plot_title = analyse.format_plot_title(dir_name)
-    popt = None
-
-    try:
-        popt, _ = optimize.curve_fit(
-            analyse.exponential, t_values, data_points, p0=[20, -1 / 10, 5]
-        )
-
-        results.addline(
-            {
-                "id": dir_name,
-                "norm_id": "l1_log",
-                "duration": -1 / popt[1],
-                "intensity": analyse.exponential(0, *popt),
-            }
-        )
-
-        data_points = data_points - popt[2]
-    except:
-        print(f"Fit failed: {plot_title}")
 
     plt.figure(figsize=(12, 10))
     plt.scatter(t_values, data_points, label="Norm: L1 with log x axis")
 
-    if popt is not None:
+    max_y = np.max(data_points)
+    min_y = np.min(data_points)
+    plt.ylim(top=max_y + 5, bottom=min_y - 5)
+    plt.xlim(left=0)
+
+    current_output_folder = os.path.join(OUTPUT_FOLDER, dir_name)
+    utils.ensure_dir(current_output_folder)
+    data_csv_path = os.path.join(current_output_folder, f"{dir_name}.csv")
+    data_csv = CSVWriter(data_csv_path, ["time", "distance"])
+
+    for index in range(len(t_values)):
+        data_csv.addline({"time": t_values[index], "distance": data_points[index]})
+
+    data_csv.write()
+
+    log_file_path = os.path.join(current_output_folder, f"{dir_name}_log.txt")
+
+    try:
+        (par_a, par_b, par_c), pcov = optimize.curve_fit(
+            analyse.exponential, t_values, data_points, p0=[20, -1 / 10, 5]
+        )
+
+        delta_a, delta_b, delta_c = np.sqrt(np.diag(pcov))
+
+        results_csv.addline(
+            {
+                "id": dir_name,
+                "norm_id": "l1_log",
+                "duration": -1 / par_b,
+                "delta_duration": delta_b / par_b**2,
+                "intensity": par_a,
+                "delta_intensity": delta_a,
+            }
+        )
+
         t0 = 0
         tf = np.max(t_values)
         t_values = np.linspace(t0, tf, 10000)
+        y_values = analyse.exponential(t_values, par_a, par_b, par_c)
 
         plt.plot(
             t_values,
-            [analyse.exponential(t, *popt) - popt[2] for t in t_values],
+            y_values,
             "r",
             label="Fit",
         )
+
+        errors = analyse.get_error(t_values, par_a, par_b, delta_a, delta_b, delta_c)
+        plt.fill_between(
+            t_values,
+            y_values - errors,
+            y_values + errors,
+            color="r",
+            alpha=0.2,
+            label="Error",
+        )
+
+        with open(log_file_path, "w") as log_file:
+            log_file.write(f"Parameter a: {par_a} +- {delta_a}\n")
+            log_file.write(f"Parameter b: {par_b} +- {delta_b}\n")
+            log_file.write(f"Parameter c: {par_c} +- {delta_c}\n")
+    except:
+        with open(log_file_path, "w") as log_file:
+            log_file.write(f"Fit failed")
+
     plt.legend()
 
     plt.xlabel("Time (s)")
-    plt.ylabel("Distance")
+    plt.ylabel("Distance (Hz dB)")
     plt.title(plot_title)
 
     plt.grid(True)
     plt.margins(x=0)
-    plt.xlim(left=0)
 
-    fig_path = os.path.join(OUTPUT_FOLDER, f"{dir_name}.pdf")
+    fig_path = os.path.join(OUTPUT_FOLDER, dir_name, f"{dir_name}.pdf")
     plt.savefig(fig_path)
     plt.close()
 
     print(f"Done {plot_title}")
 
-results.write()
+results_csv.write()
 print("Done writing results")
