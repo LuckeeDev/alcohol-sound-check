@@ -24,7 +24,7 @@ results_csv = CSVWriter(
 
 LABELS_FILE_NAME = "labels.txt"
 
-for dir_name in os.listdir(AUDIO_FOLDER):
+for dir_name in utils.list_subdirectories(AUDIO_FOLDER):
     dir_path = os.path.join(AUDIO_FOLDER, dir_name)
 
     labels_file_path = os.path.join(dir_path, LABELS_FILE_NAME)
