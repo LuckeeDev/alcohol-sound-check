@@ -41,7 +41,8 @@ for dir_name in utils.list_subdirectories(AUDIO_FOLDER):
         references.append((frequencies, spectrum))
 
     t_values = []
-    data_points = []
+    y_values = []
+    y_deltas = []
     effect_folder = os.path.join(dir_path, "effect")
 
     for file_name in os.listdir(effect_folder):
@@ -52,26 +53,35 @@ for dir_name in utils.list_subdirectories(AUDIO_FOLDER):
 
         frequencies, spectrum = audio.get_spectrum(y, sr)
 
-        distance = analyse.get_distance(norms.l1_log, spectrum, references, frequencies)
-        data_points.append(distance)
+        distance, delta_distance = analyse.get_distance(
+            norms.l1_log, spectrum, references, frequencies
+        )
+        y_values.append(distance)
+        y_deltas.append(delta_distance)
 
     plot_title = analyse.format_plot_title(dir_name)
 
     plt.figure(figsize=(12, 10))
-    plt.scatter(t_values, data_points, label="Norm: L1 with log x axis")
+    plt.scatter(t_values, y_values, label="Norm: L1 with log x axis")
 
-    max_y = np.max(data_points)
-    min_y = np.min(data_points)
+    max_y = np.max(y_values)
+    min_y = np.min(y_values)
     plt.ylim(top=max_y + 5, bottom=min_y - 5)
     plt.xlim(left=0)
 
     current_output_folder = os.path.join(OUTPUT_FOLDER, dir_name)
     utils.ensure_dir(current_output_folder)
     data_csv_path = os.path.join(current_output_folder, f"{dir_name}.csv")
-    data_csv = CSVWriter(data_csv_path, ["time", "distance"])
+    data_csv = CSVWriter(data_csv_path, ["time", "distance", "delta_distance"])
 
     for index in range(len(t_values)):
-        data_csv.addline({"time": t_values[index], "distance": data_points[index]})
+        data_csv.addline(
+            {
+                "time": t_values[index],
+                "distance": y_values[index],
+                "delta_distance": y_deltas[index],
+            }
+        )
 
     data_csv.write()
 
@@ -79,7 +89,7 @@ for dir_name in utils.list_subdirectories(AUDIO_FOLDER):
 
     try:
         (par_a, par_b, par_c), pcov = optimize.curve_fit(
-            analyse.exponential, t_values, data_points, p0=[20, -1 / 10, 5]
+            analyse.exponential, t_values, y_values, sigma=y_deltas, p0=[20, -1 / 10, 5]
         )
 
         delta_a, delta_b, delta_c = np.sqrt(np.diag(pcov))

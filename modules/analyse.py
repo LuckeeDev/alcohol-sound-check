@@ -3,14 +3,16 @@ import string
 
 
 def get_distance(norm, spectrum, references, frequencies=None):
+    distances = np.array([])
+
     if frequencies is None:
         distances = np.array([norm(spectrum, ref[1]) for ref in references])
-        return np.mean(distances)
     else:
         distances = np.array(
             [norm(spectrum, ref[1], frequencies) for ref in references]
         )
-        return np.mean(distances)
+
+    return np.mean(distances), np.std(distances)
 
 
 def exponential(x, a, b, c):
