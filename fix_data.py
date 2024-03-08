@@ -13,14 +13,6 @@ OUTPUT_PATH = input("Enter the path of the output folder: ")
 results_path = os.path.join(OUTPUT_PATH, "fixed_data.csv")
 results_csv = CSVWriter(results_path, ["time", "distance", "delta_distance"])
 
-t_range = []
-d_range = []
-
-t_range.append(float(input("from ")))
-t_range.append(float(input("to ")))
-d_range.append(float(input("from ")))
-d_range.append(float(input("to ")))
-
 t_values = []
 y_values = []
 y_deltas = []
@@ -39,7 +31,10 @@ with open(INPUT_PATH, newline="") as file:
 
 plot_title = analyse.format_plot_title(INPUT_PATH)
 
-fig = plt.figure(figsize=(12, 10))
+fig, ax = plt.subplots()
+fig.set_figwidth(12)
+fig.set_figheight(10)
+
 plt.scatter(t_values, y_values, label="Norm: L1 with log x axis")
 
 max_y = np.max(y_values)
@@ -88,7 +83,42 @@ plt.grid(True)
 plt.margins(x=0)
 
 
-class ClickEvent:
+class HandleEvents:
+    def enter(self):
+        min_x = min(self.xs)
+        max_x = max(self.xs)
+        min_y = min(self.ys)
+        max_y = max(self.ys)
+
+        with open(INPUT_PATH, newline="") as file:
+            reader = csv.reader(file, delimiter=",")
+
+            b = False
+            for row in reader:
+                if b:
+                    if not (
+                        min_x <= float(row[0]) <= max_x
+                        and min_y <= float(row[1]) <= max_y
+                    ):
+                        results_csv.addline(
+                            {
+                                "time": row[0],
+                                "distance": row[1],
+                                "delta_distance": row[2],
+                            }
+                        )
+                else:
+                    b = True
+
+        results_csv.write()
+        print("done")
+        plt.close()
+
+    def esc(self):
+        fig.canvas.mpl_disconnect(self.cid)
+        fig.canvas.mpl_connect("button_press_event", self)
+        self.counter = 0
+
     def __init__(self):
         self.cid = fig.canvas.mpl_connect("button_press_event", self)
         self.xs = []
@@ -96,34 +126,39 @@ class ClickEvent:
         self.counter = 0
 
     def __call__(self, event):
-        self.xs.append(event.xdata)
-        self.ys.append(event.ydata)
-        print(self.xs, self.ys)
+        if self.counter == 0:
+            self.xs.clear()
+            self.ys.clear()
+            self.xs.append(event.xdata)
+            self.ys.append(event.ydata)
+            self.counter += 1
+        elif self.counter == 1:
+            self.xs.append(event.xdata)
+            self.ys.append(event.ydata)
+
+            (line_1,) = ax.plot([self.xs[0], self.xs[1]], [self.ys[0], self.ys[0]], "g")
+            line_1.figure.canvas.draw()
+
+            (line_2,) = ax.plot([self.xs[1], self.xs[1]], [self.ys[0], self.ys[1]], "g")
+            line_2.figure.canvas.draw()
+
+            (line_3,) = ax.plot([self.xs[1], self.xs[0]], [self.ys[1], self.ys[1]], "g")
+            line_3.figure.canvas.draw()
+
+            (line_4,) = ax.plot([self.xs[0], self.xs[0]], [self.ys[1], self.ys[0]], "g")
+            line_4.figure.canvas.draw()
+
+            fig.canvas.mpl_disconnect(self.cid)
+            self.cid = fig.canvas.mpl_connect("key_press_event", self)
+
+            self.counter += 1
+        elif self.counter == 2:
+            if event.key == "enter":
+                self.enter()
+            elif event.key == "escape":
+                self.esc()
 
 
-click = ClickEvent()
+HandleEvents()
 
 plt.show()
-
-
-# with open(INPUT_PATH, newline="") as file:
-#     reader = csv.reader(file, delimiter=",")
-
-#     b = False
-#     for row in reader:
-#         if b:
-#             if not (
-#                 t_range[0] <= float(row[0]) <= t_range[1]
-#                 and d_range[0] <= float(row[1]) <= d_range[1]
-#             ):
-#                 results_csv.addline(
-#                     {
-#                         "time": row[0],
-#                         "distance": row[1],
-#                         "delta_distance": row[2],
-#                     }
-#                 )
-#         else:
-#             b = True
-
-# results_csv.write()
