@@ -2,11 +2,14 @@ import numpy as np
 import os
 import csv
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import scipy.optimize as optimize
 from enum import Enum
 
 from modules.csv_writer import CSVWriter
 from modules import utils, analyse
+
+mpl.rcParams["toolbar"] = "None"
 
 
 def plot_and_fit(tydelta_tuples):
