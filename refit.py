@@ -90,16 +90,6 @@ for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
             label="Fit",
         )
 
-        errors = analyse.get_error(t_values, par_a, par_b, delta_a, delta_b, delta_c)
-        plt.fill_between(
-            t_values,
-            y_values - errors,
-            y_values + errors,
-            color="r",
-            alpha=0.2,
-            label="Error",
-        )
-
         with open(log_file_path, "w") as log_file:
             log_file.write(f"Parameter a: {par_a} +- {delta_a}\n")
             log_file.write(f"Parameter b: {par_b} +- {delta_b}\n")
