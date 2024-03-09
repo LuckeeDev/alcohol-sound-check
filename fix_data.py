@@ -3,6 +3,7 @@ import os
 import csv
 import matplotlib.pyplot as plt
 import scipy.optimize as optimize
+from enum import Enum
 
 from modules.csv_writer import CSVWriter
 from modules import utils, analyse
@@ -81,15 +82,17 @@ with open(INPUT_FILE, newline="") as file:
         else:
             first_row_done = True
 
-fig, ax = plt.subplots()
-fig.set_figwidth(12)
-fig.set_figheight(10)
-
 plot_and_fit(tydelta_tuples)
 
 
+class EventsState(Enum):
+    FIRST_POINT = 0
+    SECOND_POINT = 1
+    FIX = 2
+
+
 class HandleEvents:
-    def enter(self):
+    def remove_points(self):
         min_x = min(self.xs)
         max_x = max(self.xs)
         min_y = min(self.ys)
@@ -101,55 +104,65 @@ class HandleEvents:
             if not (min_x <= t <= max_x and min_y <= y <= max_y)
         ]
 
+        self.reset_plot()
+
+    def undo_selection(self):
+        self.reset_plot()
+        self.connect_to_button()
+        self.state = EventsState.FIRST_POINT
+
+    def reset_plot(self):
         plt.clf()
         plot_and_fit(self.tydelta_tuples)
         plt.show()
 
-    def esc(self):
+    def connect_to_button(self):
+        fig = plt.gcf()
         fig.canvas.mpl_disconnect(self.cid)
-        fig.canvas.mpl_connect("button_press_event", self)
-        self.counter = 0
+        self.cid = fig.canvas.mpl_connect("button_press_event", self)
+
+    def connect_to_key(self):
+        fig = plt.gcf()
+        fig.canvas.mpl_disconnect(self.cid)
+        self.cid = fig.canvas.mpl_connect("key_press_event", self)
 
     def __init__(self, tydelta_tuples):
+        fig = plt.gcf()
         self.cid = fig.canvas.mpl_connect("button_press_event", self)
         self.xs = []
         self.ys = []
-        self.counter = 0
+        self.state = EventsState.FIRST_POINT
         self.tydelta_tuples = tydelta_tuples
 
     def __call__(self, event):
-        if self.counter == 0:
-            self.xs.clear()
-            self.ys.clear()
-            self.xs.append(event.xdata)
-            self.ys.append(event.ydata)
-            self.counter += 1
-        elif self.counter == 1:
-            self.xs.append(event.xdata)
-            self.ys.append(event.ydata)
+        match self.state:
+            case EventsState.FIRST_POINT:
+                self.xs.clear()
+                self.ys.clear()
+                self.xs.append(event.xdata)
+                self.ys.append(event.ydata)
 
-            (line_1,) = ax.plot([self.xs[0], self.xs[1]], [self.ys[0], self.ys[0]], "g")
-            line_1.figure.canvas.draw()
+                self.state = EventsState.SECOND_POINT
+            case EventsState.SECOND_POINT:
+                self.xs.append(event.xdata)
+                self.ys.append(event.ydata)
 
-            (line_2,) = ax.plot([self.xs[1], self.xs[1]], [self.ys[0], self.ys[1]], "g")
-            line_2.figure.canvas.draw()
+                plt.plot([self.xs[0], self.xs[1]], [self.ys[0], self.ys[0]], "g")
+                plt.plot([self.xs[1], self.xs[1]], [self.ys[0], self.ys[1]], "g")
+                plt.plot([self.xs[1], self.xs[0]], [self.ys[1], self.ys[1]], "g")
+                plt.plot([self.xs[0], self.xs[0]], [self.ys[1], self.ys[0]], "g")
+                plt.show()
 
-            (line_3,) = ax.plot([self.xs[1], self.xs[0]], [self.ys[1], self.ys[1]], "g")
-            line_3.figure.canvas.draw()
+                self.connect_to_key()
+                self.state = EventsState.FIX
+            case EventsState.FIX:
+                if event.key == "enter":
+                    self.remove_points()
+                elif event.key == "escape":
+                    self.undo_selection()
 
-            (line_4,) = ax.plot([self.xs[0], self.xs[0]], [self.ys[1], self.ys[0]], "g")
-            line_4.figure.canvas.draw()
-
-            fig.canvas.mpl_disconnect(self.cid)
-            self.cid = fig.canvas.mpl_connect("key_press_event", self)
-
-            self.counter += 1
-        elif self.counter == 2:
-            if event.key == "enter":
-                print("Enter event captured")
-                self.enter()
-            elif event.key == "escape":
-                self.esc()
+                self.connect_to_button()
+                self.state = EventsState.FIRST_POINT
 
 
 HandleEvents(tydelta_tuples)
