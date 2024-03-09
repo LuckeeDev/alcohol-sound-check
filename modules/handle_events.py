@@ -34,7 +34,23 @@ class HandleEvents:
         graphics.plot_and_fit(self.tydelta_tuples)
         plt.show()
 
-    def __init__(self, tydelta_tuples):
+    def save_output(self):
+        for t, y, y_delta in self.tydelta_tuples:
+            self.output_csv.addline(
+                {
+                    "time": t,
+                    "distance": y,
+                    "delta_distance": y_delta,
+                }
+            )
+
+        self.output_csv.write()
+        plt.close()
+
+    def __init__(self, tydelta_tuples, output_csv):
+        self.tydelta_tuples = tydelta_tuples
+        self.output_csv = output_csv
+
         fig = plt.gcf()
         fig.canvas.mpl_connect("button_press_event", self)
         fig.canvas.mpl_connect("key_press_event", self)
@@ -43,7 +59,6 @@ class HandleEvents:
         self.xs = []
         self.ys = []
         self.state = EventsState.FIRST_POINT
-        self.tydelta_tuples = tydelta_tuples
         self.ctrl_pressed = False
 
     def __call__(self, event):
@@ -86,4 +101,4 @@ class HandleEvents:
                         self.undo_selection()
                         self.state = EventsState.FIRST_POINT
                     case "ctrl+s":
-                        print("Saved")
+                        self.save_output()

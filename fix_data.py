@@ -34,6 +34,6 @@ with open(INPUT_FILE, newline="") as file:
 
 graphics.plot_and_fit(tydelta_tuples)
 
-HandleEvents(tydelta_tuples)
+HandleEvents(tydelta_tuples, output_csv)
 
 plt.show()
