@@ -39,14 +39,14 @@ for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
     with open(data_path, newline="") as file:
         reader = csv.reader(file, delimiter=",")
 
-        b = False
+        first_row_done = False
         for row in reader:
-            if b:
+            if first_row_done:
                 t_values.append(float(row[0]))
                 y_values.append(float(row[1]))
                 y_deltas.append(float(row[2]))
             else:
-                b = True
+                first_row_done = True
 
     plot_title = analyse.format_plot_title(dir_name)
 
