@@ -111,7 +111,6 @@ class HandleEvents:
 
     def undo_selection(self):
         self.reset_plot()
-        self.connect_to_button()
         self.state = EventsState.FIRST_POINT
 
     def reset_plot(self):
@@ -119,53 +118,59 @@ class HandleEvents:
         plot_and_fit(self.tydelta_tuples)
         plt.show()
 
-    def connect_to_button(self):
-        fig = plt.gcf()
-        fig.canvas.mpl_disconnect(self.cid)
-        self.cid = fig.canvas.mpl_connect("button_press_event", self)
-
-    def connect_to_key(self):
-        fig = plt.gcf()
-        fig.canvas.mpl_disconnect(self.cid)
-        self.cid = fig.canvas.mpl_connect("key_press_event", self)
-
     def __init__(self, tydelta_tuples):
         fig = plt.gcf()
-        self.cid = fig.canvas.mpl_connect("button_press_event", self)
+        fig.canvas.mpl_connect("button_press_event", self)
+        fig.canvas.mpl_connect("key_press_event", self)
+        fig.canvas.mpl_connect("key_release_event", self)
+
         self.xs = []
         self.ys = []
         self.state = EventsState.FIRST_POINT
         self.tydelta_tuples = tydelta_tuples
+        self.ctrl_pressed = False
 
     def __call__(self, event):
-        match self.state:
-            case EventsState.FIRST_POINT:
-                self.xs.clear()
-                self.ys.clear()
-                self.xs.append(event.xdata)
-                self.ys.append(event.ydata)
+        match event.name:
+            case "button_press_event":
+                match self.state:
+                    case EventsState.FIRST_POINT:
+                        self.xs.clear()
+                        self.ys.clear()
+                        self.xs.append(event.xdata)
+                        self.ys.append(event.ydata)
 
-                self.state = EventsState.SECOND_POINT
-            case EventsState.SECOND_POINT:
-                self.xs.append(event.xdata)
-                self.ys.append(event.ydata)
+                        self.state = EventsState.SECOND_POINT
+                    case EventsState.SECOND_POINT:
+                        self.xs.append(event.xdata)
+                        self.ys.append(event.ydata)
 
-                plt.plot([self.xs[0], self.xs[1]], [self.ys[0], self.ys[0]], "g")
-                plt.plot([self.xs[1], self.xs[1]], [self.ys[0], self.ys[1]], "g")
-                plt.plot([self.xs[1], self.xs[0]], [self.ys[1], self.ys[1]], "g")
-                plt.plot([self.xs[0], self.xs[0]], [self.ys[1], self.ys[0]], "g")
-                plt.show()
+                        plt.plot(
+                            [self.xs[0], self.xs[1]], [self.ys[0], self.ys[0]], "g"
+                        )
+                        plt.plot(
+                            [self.xs[1], self.xs[1]], [self.ys[0], self.ys[1]], "g"
+                        )
+                        plt.plot(
+                            [self.xs[1], self.xs[0]], [self.ys[1], self.ys[1]], "g"
+                        )
+                        plt.plot(
+                            [self.xs[0], self.xs[0]], [self.ys[1], self.ys[0]], "g"
+                        )
+                        plt.show()
 
-                self.connect_to_key()
-                self.state = EventsState.FIX
-            case EventsState.FIX:
-                if event.key == "enter":
-                    self.remove_points()
-                elif event.key == "escape":
-                    self.undo_selection()
-
-                self.connect_to_button()
-                self.state = EventsState.FIRST_POINT
+                        self.state = EventsState.FIX
+            case "key_press_event":
+                match event.key:
+                    case "enter":
+                        if self.state == EventsState.FIX:
+                            self.remove_points()
+                            self.state = EventsState.FIRST_POINT
+                    case "escape":
+                        self.undo_selection()
+                        self.state = EventsState.FIRST_POINT
+                    case "ctrl+s":
+                        print("Saved")
 
 
 HandleEvents(tydelta_tuples)
