@@ -19,6 +19,10 @@ def exponential(x, a, b, c):
     return a * np.exp(b * x) + c
 
 
+def final_fit(x, a):
+    return [a * eta * h / (rho) for (eta, rho, h) in x]
+
+
 def format_plot_title(label: str):
     words = label.split("_")
     title = " ".join(words)
