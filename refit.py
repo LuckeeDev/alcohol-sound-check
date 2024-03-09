@@ -51,12 +51,6 @@ for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
     plot_title = analyse.format_plot_title(dir_name)
 
     plt.figure(figsize=(12, 10))
-    plt.scatter(t_values, y_values, label="Norm: L1 with log x axis")
-
-    max_y = np.max(y_values)
-    min_y = np.min(y_values)
-    plt.ylim(top=max_y + 5, bottom=min_y - 5)
-    plt.xlim(left=0)
 
     current_output_folder = os.path.join(OUTPUT_FOLDER, dir_name)
     utils.ensure_dir(current_output_folder)
@@ -78,16 +72,18 @@ for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
             }
         )
 
+        y_values = y_values - par_c
+        plt.scatter(t_values, y_values, label="Distance")
+
         t0 = 0
         tf = np.max(t_values)
         t_values = np.linspace(t0, tf, 10000)
-        y_values = analyse.exponential(t_values, par_a, par_b, par_c)
-
+        y_values = analyse.exponential(t_values, par_a, par_b, 0)
         plt.plot(
             t_values,
             y_values,
             "r",
-            label="Fit",
+            label="Exponential fit",
         )
 
         with open(log_file_path, "w") as log_file:
