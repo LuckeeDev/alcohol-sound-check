@@ -15,15 +15,22 @@ OUTPUT_FOLDER = input("Enter the path of the output folder: ")
 
 utils.ensure_dir(OUTPUT_FOLDER)
 
-results_path = os.path.join(OUTPUT_FOLDER, "results.csv")
+results_path = os.path.join(OUTPUT_FOLDER, "results_fixed.csv")
 results_csv = CSVWriter(
     results_path,
-    ["id", "norm_id", "duration", "delta_duration", "intensity", "delta_intensity"],
+    ["id", "duration", "delta_duration"],
 )
 
 for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
     dir_path = os.path.join(SOURCE_FOLDER, dir_name)
-    data_path = os.path.join(dir_path, f"{dir_name}.csv")
+
+    invalid_path = os.path.join(dir_path, "INVALID")
+
+    if os.path.exists(invalid_path) and os.path.isfile(invalid_path):
+        print(f"Skipping {dir_name} because it is marked as invalid")
+        continue
+
+    data_path = os.path.join(dir_path, "fixed_data.csv")
 
     t_values = []
     y_values = []
@@ -54,7 +61,7 @@ for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
     current_output_folder = os.path.join(OUTPUT_FOLDER, dir_name)
     utils.ensure_dir(current_output_folder)
 
-    log_file_path = os.path.join(current_output_folder, f"{dir_name}_log.txt")
+    log_file_path = os.path.join(current_output_folder, f"{dir_name}_fixed_log.txt")
 
     try:
         (par_a, par_b, par_c), pcov = optimize.curve_fit(
@@ -66,11 +73,8 @@ for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
         results_csv.addline(
             {
                 "id": dir_name,
-                "norm_id": "l1_log",
                 "duration": -1 / par_b,
                 "delta_duration": delta_b / par_b**2,
-                "intensity": par_a,
-                "delta_intensity": delta_a,
             }
         )
 
@@ -113,7 +117,7 @@ for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
     plt.grid(True)
     plt.margins(x=0)
 
-    fig_path = os.path.join(OUTPUT_FOLDER, dir_name, f"{dir_name}.pdf")
+    fig_path = os.path.join(OUTPUT_FOLDER, dir_name, f"{dir_name}_fixed.pdf")
     plt.savefig(fig_path)
     plt.close()
 
