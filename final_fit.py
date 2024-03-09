@@ -46,7 +46,7 @@ try:
         data,
         t_values,
         sigma=t_deltas,
-        p0=[300],
+        p0=[4e5],
     )
 
     print(f"Parameter a: {popt[0]} +- {np.sqrt(pcov[0, 0])}")
