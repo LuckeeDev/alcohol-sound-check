@@ -9,6 +9,7 @@ from modules import utils, analyse
 
 INPUT_PATH = input("Enter the path of the file: ")
 OUTPUT_PATH = input("Enter the path of the output folder: ")
+utils.ensure_dir(OUTPUT_PATH)
 
 results_path = os.path.join(OUTPUT_PATH, "fixed_data.csv")
 results_csv = CSVWriter(results_path, ["time", "distance", "delta_distance"])
