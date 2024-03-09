@@ -11,7 +11,12 @@ mpl.rcParams["toolbar"] = "None"
 
 
 print(
-    'INPUT FILE NAME SHOULD NOT BE "fixed_data.csv". YOU CANNOT UNDO WHAT THIS SCRIPT DOES.'
+    "Instructions:\n",
+    "- Click on two points to draw a rectangle around the points you want to remove.\n",
+    '- Press "enter" to remove the points.\n',
+    '- Press "esc" to undo the selection.\n',
+    '- Press "ctrl+s" to save the output.\n',
+    'INPUT FILE NAME SHOULD NOT BE "fixed_data.csv". YOU CANNOT UNDO WHAT THIS SCRIPT DOES.',
 )
 INPUT_FILE = input("Enter the path of the input file: ")
 OUTPUT_PATH = input("Enter the path of the output folder: ")
