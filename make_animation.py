@@ -5,6 +5,8 @@ import csv
 import matplotlib.pyplot as plt
 import math
 
+plt.rcParams.update({"text.usetex": True, "font.size": 20})
+
 INPUT_FILE = input("Enter the path of the input file: ")
 ANIMATION_LENGTH = int(
     input("Enter the length of the animation in seconds (integer): ")
@@ -49,7 +51,12 @@ highest_time = math.ceil(np.max(t_values))
 fit_time = np.linspace(0, highest_time, num=highest_time * FPS)
 fit_distance = exponential_func(fit_time, popt[0], popt[1], 0)
 
-plt.plot(fit_time, fit_distance, "r-", label="Exponential Fit")
+plt.plot(
+    fit_time,
+    fit_distance,
+    "r-",
+    label=f"Exponential fit ($\\tau = {-1/popt[1]:.2f} \\pm {np.sqrt(pcov[1,1])/popt[1]**2:.2f}$ s)",
+)
 (point,) = plt.plot([], [], "ro")
 
 plt.xlabel("Time (s)")

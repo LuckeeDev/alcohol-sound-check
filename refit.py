@@ -7,6 +7,9 @@ import scipy.optimize as optimize
 from modules.csv_writer import CSVWriter
 from modules import utils, analyse
 
+# Enable LaTeX
+plt.rcParams.update({"text.usetex": True, "font.size": 20})
+
 print(
     "Make sure that the output folder is not a subdirectory of the source folder. At most, they can be the same folder."
 )
@@ -83,7 +86,7 @@ for dir_name in utils.list_subdirectories(SOURCE_FOLDER):
             t_values,
             y_values,
             "r",
-            label="Exponential fit",
+            label=f"Exponential fit ($\\tau = {-1/par_b:.2f} \\pm {delta_b/par_b**2:.2f}$ s)",
         )
 
         with open(log_file_path, "w") as log_file:
