@@ -24,3 +24,7 @@ The repository contains executable scripts in the root directory and common code
     $$d(s_1, s_2) = \int_{log_{10}(f_{min})}^{log_{10}(f_{max})}\left| s_1(u) - s_2(u) \right| du$$
 
     where $u$ is the base 10 logarithm of the frequency $f$.
+
+## Results
+
+[At this link](https://1drv.ms/p/s!AoC-sN1MqfUZgaBP7PB43X2qe_tCOg?e=OuFpLJ) you can find the Power Point presentation with our conclusions regarding this problem.
